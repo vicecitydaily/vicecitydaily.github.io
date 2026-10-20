@@ -1,12 +1,17 @@
 # Vice City Daily
 
-A static, fictional neon-80s newspaper site, hosted on GitHub Pages.
+Unofficial GTA VI fan site with a live launch countdown and real, sourced news.
+Live at https://vicecitydaily.github.io/ · Instagram: [@vicecity.daily6](https://www.instagram.com/vicecity.daily6/)
 
-- `index.html` — front page: lead story, section filters, search, classifieds, newsletter signup (demo only)
-- `article.html?id=<story-id>` — individual stories
-- `assets/js/data.js` — all stories, ticker, horoscopes, quotes, classifieds and forecast. Add a story by appending to `ARTICLES`.
-- `assets/js/app.js` — rendering; daily features (most read, quote, horoscopes) rotate by date
-- `assets/css/style.css` — styles, with day/night editions (follows system theme, toggle in the top bar)
+- `index.html` — countdown hero (to midnight local time, Nov 19, 2026), key facts, news feed with category filters, launch timeline, Instagram promo
+- `article.html?id=<story-id>` — story pages with photo credit and source links
+- `assets/js/data.js` — all content: stories, facts, timeline, launch dates
+- `assets/img/` — story photos (real-world Miami/Florida, Wikimedia Commons, credited per story)
+
+## Adding a news story
+
+1. Add a landscape photo to `assets/img/` (about 1400px wide, JPEG). Use only images you're allowed to use, and note the credit.
+2. Add an object at the top of `ARTICLES` in `assets/js/data.js` with `id`, `category`, `date`, `title`, `dek`, `image`, `credit`, `body` and `sources`. Only real reporting, with links.
+3. Update `VCD.UPDATED`. Push to `main` and GitHub Pages republishes in about a minute.
 
 Run locally: `python3 -m http.server` and open http://localhost:8000.
-Deploys via `.github/workflows/pages.yml` on pushes to `main`.

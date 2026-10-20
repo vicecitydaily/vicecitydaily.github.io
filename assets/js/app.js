@@ -1,343 +1,267 @@
 (function () {
   "use strict";
 
-  const { SECTIONS, ARTICLES, TICKER, HOROSCOPES, QUOTES, CLASSIFIEDS, WEATHER } = window.VCD;
+  const { CATEGORIES, ARTICLES, FACTS, TIMELINE, INSTAGRAM, LAUNCH, PRELOAD } = window.VCD;
   const $ = (sel, root = document) => root.querySelector(sel);
-
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => (
     { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
   ));
-  const sectionName = (id) => (SECTIONS.find((s) => s.id === id) || {}).name || id;
+
+  const catName = (id) => (CATEGORIES.find((c) => c.id === id) || {}).name || id;
   const articleUrl = (a) => `article.html?id=${encodeURIComponent(a.id)}`;
+  const parseDay = (s) => { const [y, m, d] = s.split("-").map(Number); return new Date(y, m - 1, d); };
+  const fmtDate = (s, opts) => parseDay(s).toLocaleDateString("en-US", opts || { month: "short", day: "numeric", year: "numeric" });
+  const byNewest = (a, b) => parseDay(b.date) - parseDay(a.date);
 
-  // A number that changes once per day, used to rotate daily features.
-  const today = new Date();
-  const daySeed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
-  function seededShuffle(list, seed) {
-    const out = list.slice();
-    let s = seed;
-    for (let i = out.length - 1; i > 0; i--) {
-      s = (s * 9301 + 49297) % 233280;
-      const j = Math.floor((s / 233280) * (i + 1));
-      [out[i], out[j]] = [out[j], out[i]];
-    }
-    return out;
-  }
+  // The game unlocks at midnight in each time zone, so count down to local midnight.
+  const launchAt = new Date(LAUNCH.year, LAUNCH.month, LAUNCH.day);
+  const preloadAt = new Date(PRELOAD.year, PRELOAD.month, PRELOAD.day);
+  const trailerOne = new Date(2023, 11, 5);
 
-  // ---------- Theme ----------
-  const THEME_KEY = "vcd-theme";
-  function storedTheme() {
-    try { return localStorage.getItem(THEME_KEY); } catch (e) { return null; }
+  const IG_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>`;
+
+  function remaining(now) {
+    const ms = Math.max(0, launchAt - now);
+    return {
+      ms,
+      d: Math.floor(ms / 86400000),
+      h: Math.floor(ms / 3600000) % 24,
+      m: Math.floor(ms / 60000) % 60,
+      s: Math.floor(ms / 1000) % 60
+    };
   }
-  function applyTheme(t) {
-    if (t) document.documentElement.setAttribute("data-theme", t);
-    else document.documentElement.removeAttribute("data-theme");
-  }
-  function currentTheme() {
-    const t = document.documentElement.getAttribute("data-theme");
-    if (t) return t;
-    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-  }
-  applyTheme(storedTheme());
 
   // ---------- Shared chrome ----------
-  function renderChrome(activeSection) {
-    const dateStr = today.toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
-    const issueNo = Math.floor((today - new Date(1986, 0, 1)) / 86400000);
-    const w = WEATHER[0];
-
+  function renderChrome() {
     $("#chrome-top").innerHTML = `
-      <div class="topbar">
+      <header class="site-header" id="site-header">
         <div class="wrap">
-          <span>${esc(dateStr)}</span>
-          <span class="weather-mini">${w.icon} ${w.hi}°F · ${esc(w.note)}</span>
-          <button class="theme-toggle" type="button" id="theme-toggle"></button>
+          <a class="brand" href="./" aria-label="Vice City Daily home">VICE CITY <span>DAILY</span></a>
+          <nav class="site-nav" aria-label="Main">
+            <a class="link" href="./#news">News</a>
+            <a class="link" href="./#timeline">Timeline</a>
+            <span class="mini-count" id="mini-count" aria-label="Time until GTA VI launch"></span>
+            <a class="ig-btn" href="${INSTAGRAM.url}" target="_blank" rel="noopener">${IG_ICON}<span class="ig-label">@${esc(INSTAGRAM.handle)}</span></a>
+          </nav>
         </div>
-      </div>
-      <header class="masthead">
-        <div class="wrap">
-          <div class="kicker">
-            <span>Vol. XL · No. ${issueNo.toLocaleString("en-US")}</span>
-            <span>Est. 1986</span>
-            <span>Free on the boardwalk</span>
-          </div>
-          <a href="./" class="logo" aria-label="Vice City Daily home">
-            <span class="neon">Vice City</span>
-            <span class="daily">Daily</span>
-          </a>
-          <p class="tagline">All the neon that's fit to print.</p>
-        </div>
-      </header>
-      <nav class="nav" aria-label="Sections">
-        <div class="wrap">
-          <ul>
-            <li><a href="./" data-sec="">Front Page</a></li>
-            ${SECTIONS.map((s) => `<li><a href="./?s=${s.id}" data-sec="${s.id}">${esc(s.name)}</a></li>`).join("")}
-          </ul>
-          <form class="search" role="search" action="./">
-            <label class="visually-hidden" for="q">Search stories</label>
-            <input id="q" name="q" type="search" placeholder="Search" autocomplete="off">
-          </form>
-        </div>
-      </nav>
-      <div class="ticker" aria-label="Breaking news">
-        <div class="wrap">
-          <strong>Breaking</strong>
-          <div class="ticker-track"><div class="ticker-inner">
-            ${TICKER.concat(TICKER).map((t) => `<span>${esc(t)}</span>`).join("")}
-          </div></div>
-        </div>
-      </div>`;
+      </header>`;
 
     $("#chrome-bottom").innerHTML = `
       <footer>
         <div class="wrap">
-          <span class="logo-small">Vice City Daily</span>
-          <p>A work of fiction. Any resemblance to real flamingos is coincidental.</p>
-          <p>© ${today.getFullYear()} Vice City Daily</p>
+          <div>
+            <a class="brand" href="./">VICE CITY <span>DAILY</span></a>
+            <p style="margin-top:10px">Real GTA VI news, every day. Follow <a href="${INSTAGRAM.url}" target="_blank" rel="noopener">@${esc(INSTAGRAM.handle)}</a> on Instagram.</p>
+          </div>
+          <div>
+            <p>Vice City Daily is an unofficial fan site. It is not affiliated with or endorsed by Rockstar Games or Take-Two Interactive. Grand Theft Auto and GTA are trademarks of Take-Two Interactive.</p>
+            <p>Every story links to its original sources. Photos are real-world Miami and Florida locations from Wikimedia Commons, credited on each story. Last updated ${esc(fmtDate(window.VCD.UPDATED, { month: "long", day: "numeric", year: "numeric" }))}.</p>
+          </div>
         </div>
       </footer>`;
 
-    setActiveNav(activeSection);
+    const header = $("#site-header");
+    const onScroll = () => header.classList.toggle("solid", window.scrollY > 40);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
 
-    const btn = $("#theme-toggle");
-    const label = () => { btn.textContent = currentTheme() === "dark" ? "☀ Day edition" : "☾ Night edition"; };
-    label();
-    btn.addEventListener("click", () => {
-      const next = currentTheme() === "dark" ? "light" : "dark";
-      applyTheme(next);
-      try { localStorage.setItem(THEME_KEY, next); } catch (e) { /* storage unavailable */ }
-      label();
-    });
+    const mini = $("#mini-count");
+    const tickMini = () => {
+      const r = remaining(new Date());
+      mini.textContent = r.ms ? `GTA VI in ${r.d}d ${r.h}h ${r.m}m` : "GTA VI is out now";
+    };
+    tickMini();
+    setInterval(tickMini, 30000);
   }
 
-  function setActiveNav(section) {
-    document.querySelectorAll(".nav a[data-sec]").forEach((a) => {
-      if (a.dataset.sec === (section || "")) a.setAttribute("aria-current", "page");
-      else a.removeAttribute("aria-current");
-    });
-  }
-
-  // ---------- Pieces ----------
-  function art(a, small) {
-    return `<div class="art${small ? " small" : ""}" style="--from:${a.art.from};--to:${a.art.to}" aria-hidden="true"><span class="icon">${a.art.icon}</span></div>`;
-  }
-  function storyCard(a) {
+  function cardHtml(a) {
     return `
-      <article class="story">
-        <a href="${articleUrl(a)}">
-          ${art(a, true)}
-          <span class="tag">${esc(sectionName(a.section))}</span>
+      <a class="card reveal" href="${articleUrl(a)}">
+        <div class="img">
+          <img src="assets/img/${esc(a.image)}" alt="" loading="lazy" decoding="async">
+          <span class="badge ${esc(a.category)}">${esc(catName(a.category))}</span>
+        </div>
+        <div class="txt">
           <h3>${esc(a.title)}</h3>
           <p>${esc(a.dek)}</p>
-        </a>
-        <span class="byline">By ${esc(a.author)} · ${a.minutes} min read</span>
-      </article>`;
+          <div class="meta"><time datetime="${a.date}">${esc(fmtDate(a.date))}</time><span>· ${a.sources.length} source${a.sources.length > 1 ? "s" : ""}</span></div>
+        </div>
+      </a>`;
   }
 
-  function sidebar() {
-    const mostRead = seededShuffle(ARTICLES, daySeed).slice(0, 5);
-    const [quote, quoteBy] = QUOTES[daySeed % QUOTES.length];
-    const month = today.getMonth();
-    // Rough sunrise/sunset for a subtropical city through the year.
-    const sunrise = ["7:07", "6:55", "7:30", "7:05", "6:35", "6:30", "6:40", "6:55", "7:10", "7:20", "6:40", "6:58"][month];
-    const sunset = ["5:55", "6:20", "7:35", "7:50", "8:05", "8:15", "8:15", "7:55", "7:25", "6:55", "5:35", "5:35"][month];
-
+  function instaHtml() {
     return `
-      <div class="box">
-        <h4>Most Read Today</h4>
-        <ol class="most-read">
-          ${mostRead.map((a) => `<li><a href="${articleUrl(a)}">${esc(a.title)}</a></li>`).join("")}
-        </ol>
-      </div>
-      <div class="box">
-        <h4>Five-Day Forecast</h4>
-        <div class="forecast">
-          ${WEATHER.map((d) => `<div><span class="ico" aria-hidden="true">${d.icon}</span><b>${esc(d.day)}</b>${d.hi}° / ${d.lo}°</div>`).join("")}
-        </div>
-        <div class="sun-times"><span>🌅 Sunrise ${sunrise} am</span><span>🌇 Sunset ${sunset} pm</span></div>
-      </div>
-      <div class="box">
-        <h4>Quote of the Day</h4>
-        <blockquote class="quote">“${esc(quote)}”</blockquote>
-        <cite>— ${esc(quoteBy)}</cite>
-      </div>
-      <div class="box horoscope">
-        <h4>Daily Horoscope</h4>
-        <label class="visually-hidden" for="sign">Your sign</label>
-        <select id="sign">
-          ${HOROSCOPES.map(([s], i) => `<option value="${i}">${esc(s)}</option>`).join("")}
-        </select>
-        <p id="reading"></p>
+      <div class="insta reveal">
+        <h3>Follow the countdown</h3>
+        <span class="handle">@${esc(INSTAGRAM.handle)}</span>
+        <p>Daily GTA VI news, launch updates and Vice City vibes, straight to your feed.</p>
+        <a class="btn" href="${INSTAGRAM.url}" target="_blank" rel="noopener">${IG_ICON} Follow on Instagram</a>
       </div>`;
   }
 
-  function wireHoroscope() {
-    const sel = $("#sign");
-    if (!sel) return;
-    const KEY = "vcd-sign";
-    // Rotate readings daily so each sign gets a new one every day.
-    const readings = seededShuffle(HOROSCOPES.map((h) => h[1]), daySeed);
-    const show = () => { $("#reading").textContent = readings[Number(sel.value)]; };
-    try { const saved = localStorage.getItem(KEY); if (saved !== null) sel.value = saved; } catch (e) { /* ignore */ }
-    show();
-    sel.addEventListener("change", () => {
-      show();
-      try { localStorage.setItem(KEY, sel.value); } catch (e) { /* ignore */ }
-    });
+  function observeReveals() {
+    const els = document.querySelectorAll(".reveal:not(.in)");
+    if (!("IntersectionObserver" in window)) { els.forEach((el) => el.classList.add("in")); return; }
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } });
+    }, { rootMargin: "0px 0px -8% 0px" });
+    els.forEach((el) => io.observe(el));
   }
 
-  // ---------- Front page ----------
-  function renderHome() {
-    const params = new URLSearchParams(location.search);
-    let section = params.get("s") || "";
-    let query = params.get("q") || "";
+  // ---------- Home ----------
+  function renderCountdown() {
+    const nums = { d: $("#cd-d"), h: $("#cd-h"), m: $("#cd-m"), s: $("#cd-s") };
+    const note = $("#launch-note");
+    const fill = $("#hype-fill");
+    const pct = $("#hype-pct");
+    let last = {};
+    let timer = null;
 
-    renderChrome(section);
-    $("#sidebar").innerHTML = sidebar();
-    wireHoroscope();
-
-    $("#classifieds").innerHTML = `
-      <h2 class="section-title">Classifieds</h2>
-      <div class="cols">${CLASSIFIEDS.map(([k, v]) => `<p class="ad"><b>${esc(k)}</b>${esc(v)}</p>`).join("")}</div>`;
-
-    const input = $("#q");
-    input.value = query;
-
-    function draw() {
-      const q = query.trim().toLowerCase();
-      let list = ARTICLES.filter((a) => !section || a.section === section);
-      if (q) {
-        list = list.filter((a) => [a.title, a.dek, a.author, a.body.join(" ")].join(" ").toLowerCase().includes(q));
-      }
-      const feed = $("#feed");
-
-      if (!list.length) {
-        feed.innerHTML = `<div class="empty">No stories match “${esc(query)}”. Try another word, or check the classifieds.</div>`;
+    function update() {
+      const now = new Date();
+      const r = remaining(now);
+      if (!r.ms) {
+        $("#countdown").outerHTML = `<p class="out-now grad-text">Out now</p>`;
+        note.innerHTML = `Grand Theft Auto VI is available on PS5 and Xbox Series X|S.`;
+        fill.style.width = "100%"; pct.textContent = "100%";
+        clearInterval(timer);
         return;
       }
-
-      const lead = (!section && !q && list.find((a) => a.lead)) || list[0];
-      const rest = list.filter((a) => a !== lead);
-      const heading = q ? `Results for “${esc(query)}”` : section ? esc(sectionName(section)) : "Top Stories";
-
-      feed.innerHTML = `
-        <section class="lead">
-          <a href="${articleUrl(lead)}">${art(lead)}</a>
-          <div>
-            <span class="tag">${esc(sectionName(lead.section))}</span>
-            <a href="${articleUrl(lead)}"><h2>${esc(lead.title)}</h2></a>
-            <p class="dek">${esc(lead.dek)}</p>
-            <span class="byline">By ${esc(lead.author)} · ${lead.minutes} min read</span>
-          </div>
-        </section>
-        ${rest.length ? `<h2 class="section-title">${heading}</h2><div class="grid">${rest.map(storyCard).join("")}</div>` : ""}`;
-    }
-
-    function update(push) {
-      const p = new URLSearchParams();
-      if (section) p.set("s", section);
-      if (query) p.set("q", query);
-      const url = p.toString() ? `?${p}` : location.pathname;
-      history[push ? "pushState" : "replaceState"](null, "", url);
-      setActiveNav(query ? null : section);
-      document.title = section ? `${sectionName(section)} — Vice City Daily` : "Vice City Daily";
-      draw();
-    }
-
-    // Section links switch in place instead of reloading.
-    document.querySelectorAll(".nav a[data-sec]").forEach((a) => {
-      a.addEventListener("click", (e) => {
-        e.preventDefault();
-        section = a.dataset.sec;
-        query = "";
-        input.value = "";
-        update(true);
-        window.scrollTo({ top: $(".nav").offsetTop, behavior: "smooth" });
+      ["d", "h", "m", "s"].forEach((k) => {
+        const v = k === "d" ? String(r[k]) : String(r[k]).padStart(2, "0");
+        if (last[k] !== v) {
+          nums[k].textContent = v;
+          nums[k].classList.remove("tick"); void nums[k].offsetWidth; nums[k].classList.add("tick");
+        }
       });
-    });
-    input.addEventListener("input", () => { query = input.value; update(false); });
-    $(".search").addEventListener("submit", (e) => { e.preventDefault(); query = input.value; update(true); });
-    window.addEventListener("popstate", () => {
-      const p = new URLSearchParams(location.search);
-      section = p.get("s") || "";
-      query = p.get("q") || "";
-      input.value = query;
-      setActiveNav(query ? null : section);
-      draw();
-    });
+      last = { d: String(r.d), h: String(r.h).padStart(2, "0"), m: String(r.m).padStart(2, "0"), s: String(r.s).padStart(2, "0") };
 
-    $("#newsletter-form").addEventListener("submit", (e) => {
-      e.preventDefault();
-      const email = $("#email").value.trim();
-      $("#newsletter-msg").textContent = email
-        ? `Thanks! The morning edition will find you at ${email}. (This is a demo — nothing was sent.)`
-        : "Enter an email address first.";
-      e.target.reset();
-    });
+      const preloadDays = Math.ceil((preloadAt - now) / 86400000);
+      const preloadText = preloadAt > now
+        ? `Digital preloads open in ${preloadDays} day${preloadDays === 1 ? "" : "s"} (Nov 12).`
+        : "Preloads are open now on PS5 and Xbox Series X|S.";
+      note.innerHTML = `Thursday, November 19, 2026 · Unlocks at midnight your local time<small>${preloadText}</small>`;
 
-    if (section || query) setActiveNav(query ? null : section);
-    draw();
+      const p = Math.min(100, ((now - trailerOne) / (launchAt - trailerOne)) * 100);
+      fill.style.width = p.toFixed(2) + "%";
+      pct.textContent = p.toFixed(1) + "% of the wait done";
+    }
+    timer = setInterval(update, 1000);
+    update();
   }
 
-  // ---------- Article page ----------
+  function renderHome() {
+    renderChrome();
+    renderCountdown();
+
+    $("#facts").innerHTML = FACTS.map(([k, v]) => `<div class="fact"><b>${esc(k)}</b><span>${esc(v)}</span></div>`).join("");
+
+    const now = new Date();
+    let nextMarked = false;
+    $("#timeline-list").innerHTML = TIMELINE.map(([d, label]) => {
+      const done = parseDay(d) <= now;
+      let cls = done ? "done" : "";
+      if (!done && !nextMarked) { cls = "next"; nextMarked = true; }
+      return `<li class="${cls}"><time datetime="${d}">${esc(fmtDate(d, { month: "long", day: "numeric", year: "numeric" }))}${cls === "next" ? " · Up next" : ""}</time><span>${esc(label)}</span></li>`;
+    }).join("");
+    $("#insta-slot").innerHTML = instaHtml();
+
+    const chips = $("#chips");
+    chips.innerHTML = [`<button class="chip" type="button" data-cat="" aria-pressed="true">All</button>`]
+      .concat(CATEGORIES.filter((c) => ARTICLES.some((a) => a.category === c.id))
+        .map((c) => `<button class="chip" type="button" data-cat="${c.id}" aria-pressed="false">${esc(c.name)}</button>`))
+      .join("");
+
+    const sorted = ARTICLES.slice().sort(byNewest);
+    function draw(cat) {
+      const list = sorted.filter((a) => !cat || a.category === cat);
+      const feat = (!cat && list.find((a) => a.featured)) || list[0];
+      const rest = list.filter((a) => a !== feat);
+      $("#feed").innerHTML = !feat ? `<div class="empty">No stories here yet.</div>` : `
+        <a class="featured reveal" href="${articleUrl(feat)}">
+          <div class="img"><img src="assets/img/${esc(feat.image)}" alt="" fetchpriority="high"></div>
+          <div class="txt">
+            <div><span class="badge ${esc(feat.category)}">${esc(catName(feat.category))}</span></div>
+            <h3>${esc(feat.title)}</h3>
+            <p>${esc(feat.dek)}</p>
+            <div class="meta"><time datetime="${feat.date}">${esc(fmtDate(feat.date))}</time></div>
+            <span class="read-more">Read the story →</span>
+          </div>
+        </a>
+        <div class="cards">${rest.map(cardHtml).join("")}</div>`;
+      observeReveals();
+    }
+
+    chips.addEventListener("click", (e) => {
+      const btn = e.target.closest(".chip");
+      if (!btn) return;
+      chips.querySelectorAll(".chip").forEach((c) => c.setAttribute("aria-pressed", String(c === btn)));
+      draw(btn.dataset.cat);
+    });
+    draw("");
+  }
+
+  // ---------- Article ----------
   function renderArticle() {
+    renderChrome();
     const id = new URLSearchParams(location.search).get("id");
     const a = ARTICLES.find((x) => x.id === id);
-    renderChrome(a ? a.section : null);
     const root = $("#article");
 
     if (!a) {
-      document.title = "Story not found — Vice City Daily";
+      document.title = "Story not found | Vice City Daily";
       root.innerHTML = `
-        <div class="article">
-          <a class="back" href="./">← Front page</a>
-          <h1>This story has drifted out to sea.</h1>
-          <p class="dek">We couldn't find that article. It may have been moved, or never existed.</p>
+        <div class="a-body" style="padding-top:140px">
+          <h1>This story drifted out to sea.</h1>
+          <p>We couldn't find that article.</p>
+          <a class="btn btn-primary" href="./">Back to the latest news</a>
         </div>`;
       return;
     }
 
-    document.title = `${a.title} — Vice City Daily`;
+    document.title = `${a.title} | Vice City Daily`;
     const desc = document.querySelector('meta[name="description"]');
     if (desc) desc.setAttribute("content", a.dek);
 
-    const related = ARTICLES.filter((x) => x.section === a.section && x !== a)
-      .concat(seededShuffle(ARTICLES.filter((x) => x.section !== a.section), daySeed))
-      .slice(0, 3);
-
+    const more = ARTICLES.filter((x) => x !== a).sort(byNewest).slice(0, 3);
     root.innerHTML = `
-      <article class="article">
-        <a class="back" href="./?s=${a.section}">← ${esc(sectionName(a.section))}</a>
-        <span class="tag">${esc(sectionName(a.section))}</span>
-        <h1>${esc(a.title)}</h1>
-        <p class="dek">${esc(a.dek)}</p>
-        <div class="meta">
-          <span class="byline">By <b>${esc(a.author)}</b></span>
-          <span class="byline">${esc(today.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }))}</span>
-          <span class="byline">${a.minutes} min read</span>
+      <div class="a-hero">
+        <img src="assets/img/${esc(a.image)}" alt="" fetchpriority="high">
+        <div class="wrap">
+          <a class="back" href="./#news">← All GTA VI news</a>
+          <div style="margin-top:16px"><span class="badge ${esc(a.category)}">${esc(catName(a.category))}</span></div>
+          <h1>${esc(a.title)}</h1>
+          <p class="dek">${esc(a.dek)}</p>
+          <div class="meta"><time datetime="${a.date}">${esc(fmtDate(a.date, { weekday: "long", month: "long", day: "numeric", year: "numeric" }))}</time></div>
         </div>
-        ${art(a)}
-        <div class="body">${a.body.map((p) => `<p>${esc(p)}</p>`).join("")}</div>
-        <div class="share">
-          <button class="btn" type="button" id="copy-link">Copy link</button>
+      </div>
+      <article class="a-body">
+        ${a.body.map((p) => `<p>${esc(p)}</p>`).join("")}
+        <p class="photo-credit">Photo: <a href="${esc(a.credit.page)}" target="_blank" rel="noopener">${esc(a.credit.artist)}</a>, ${esc(a.credit.license)}, via Wikimedia Commons. Real-world Miami/Florida photo, not from the game.</p>
+        <div class="sources">
+          <h2>Sources</h2>
+          <ul>${a.sources.map(([name, url]) => `<li><a href="${esc(url)}" target="_blank" rel="noopener">${esc(name)}</a></li>`).join("")}</ul>
+        </div>
+        <div class="a-actions">
+          <button class="btn btn-ghost" type="button" id="share">Share story</button>
+          <a class="btn btn-primary" href="./">See the countdown</a>
         </div>
       </article>
-      <section class="related">
-        <h2 class="section-title">Keep Reading</h2>
-        <div class="grid">${related.map(storyCard).join("")}</div>
-      </section>`;
+      <section class="block wrap">
+        <div class="sec-head"><h2>More <span class="grad-text">News</span></h2></div>
+        <div class="cards">${more.map(cardHtml).join("")}</div>
+      </section>
+      <section class="block wrap">${instaHtml()}</section>`;
 
-    $("#copy-link").addEventListener("click", async (e) => {
+    $("#share").addEventListener("click", async (e) => {
       const btn = e.currentTarget;
       try {
-        await navigator.clipboard.writeText(location.href);
-        btn.textContent = "Copied!";
-      } catch (err) {
-        btn.textContent = "Copy failed";
-      }
-      setTimeout(() => { btn.textContent = "Copy link"; }, 1800);
+        if (navigator.share) await navigator.share({ title: a.title, url: location.href });
+        else { await navigator.clipboard.writeText(location.href); btn.textContent = "Link copied!"; }
+      } catch (err) { /* user cancelled or clipboard blocked */ }
+      setTimeout(() => { btn.textContent = "Share story"; }, 1800);
     });
+    observeReveals();
   }
 
   if (document.body.dataset.page === "article") renderArticle();
