@@ -335,7 +335,8 @@ footer a { text-decoration: underline; }
 .sub-plain { color: var(--muted); max-width: 560px; margin: 0 auto 26px; font-size: 1.05rem; }
 .reels-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; justify-content: center; }
 .reel { display: flex; flex-direction: column; gap: 10px; }
-.reel-frame { position: relative; border-radius: 18px; overflow: hidden; background: #000; border: 1px solid var(--line); box-shadow: 0 24px 60px -30px rgba(238, 42, 123, .7); aspect-ratio: 9 / 20; }
+.reel-frame { position: relative; border-radius: 18px; overflow: hidden; background: #000; border: 1px solid var(--line); box-shadow: 0 24px 60px -30px rgba(238, 42, 123, .7); aspect-ratio: 9 / 16; transition: height .3s; }
+.reel-frame.measured { aspect-ratio: auto; }
 /* 9:20 leaves room for Instagram's header and like/comment bar under the 9:16 video. */
 .reel-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
 .reel-link { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 16px; border-radius: 999px; font-family: var(--cond); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; font-size: .9rem; color: #fff; background: linear-gradient(45deg, #f9ce34, #ee2a7b 50%, #6228d7); }
@@ -348,3 +349,8 @@ footer a { text-decoration: underline; }
 .reel-link { padding: 9px 14px; font-size: .82rem; }
 .reels-grid.top .reel-frame { box-shadow: 0 0 0 2px rgba(255, 45, 149, .6), 0 30px 70px -30px rgba(255, 45, 149, .9); }
 .load-more-wrap { text-align: center; margin-top: 28px; }
+.reels-pill { display: inline-flex; align-items: center; padding: 8px 14px; border-radius: 999px; font-family: var(--cond); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; font-size: .88rem; color: #fff; border: 1px solid rgba(255, 45, 149, .6); background: rgba(255, 45, 149, .15); white-space: nowrap; }
+.site-nav .reels-pill:hover { background: var(--pink); color: #1a0716; }
+@media (max-width: 760px) { .mini-count { display: none; } .reels-pill { padding: 8px 12px; } }
+@media (min-width: 761px) { .site-nav .reels-pill { order: -1; } }
+#reels-teaser .sec-head .btn { align-self: center; }

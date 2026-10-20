@@ -17,4 +17,6 @@ Live at https://vicecitydaily.github.io/ · Instagram: [@vicecity.daily6](https:
 2. Add an object at the top of `ARTICLES` in `assets/js/data.js` with `id`, `category`, `date`, `title`, `dek`, `image`, `credit`, `body` and `sources`. Only real reporting, with links.
 3. Update `VCD.UPDATED`, and bump the `?v=` number on the CSS/JS links in `index.html` and `article.html` so visitors don't get a stale cached copy. Push to `main` and GitHub Pages republishes in about a minute.
 
+After adding stories, run `node build-sitemap.js` to refresh `sitemap.xml` (robots.txt points crawlers to it).
+
 Run locally: `python3 -m http.server` and open http://localhost:8000.

@@ -82,9 +82,9 @@
           <nav class="site-nav" aria-label="Main">
             <a class="link" href="./#news">News</a>
             <a class="link" href="./#watch">Trailers</a>
-            <a class="link" href="reels.html">Reels</a>
             <a class="link" href="./#timeline">Timeline</a>
             <span class="mini-count" id="mini-count" aria-label="Time until GTA VI launch"></span>
+            <a class="reels-pill" href="reels.html">▶ Reels</a>
             <a class="ig-btn" href="${INSTAGRAM.url}" target="_blank" rel="noopener">${IG_ICON}<span class="ig-label">@${esc(INSTAGRAM.handle)}</span></a>
           </nav>
         </div>
@@ -156,6 +156,19 @@
     els.forEach((el) => io.observe(el));
   }
 
+  const fmtViews = (n) => (n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(/\.0$/, "") + "K" : String(n));
+  function reelHtml(r, eager) {
+    return `
+      <article class="reel reveal">
+        <div class="reel-frame">
+          <iframe src="https://www.instagram.com/reel/${encodeURIComponent(r.code)}/embed/" title="Instagram reel" loading="${eager ? "eager" : "lazy"}" allow="encrypted-media; clipboard-write" allowfullscreen scrolling="no"></iframe>
+        </div>
+        <div class="reel-row">
+          ${r.views ? `<span class="reel-views">▶ ${fmtViews(r.views)} views</span>` : "<span></span>"}
+          <a class="reel-link" href="https://www.instagram.com/reel/${encodeURIComponent(r.code)}/" target="_blank" rel="noopener">${IG_ICON} Open on Instagram</a>
+        </div>
+      </article>`;
+  }
   // ---------- Home ----------
   function renderCountdown() {
     const nums = { d: $("#cd-d"), h: $("#cd-h"), m: $("#cd-m"), s: $("#cd-s") };
@@ -219,6 +232,19 @@
       return `<li class="${cls}"><time datetime="${d}">${esc(fmtDate(d, { month: "long", day: "numeric", year: "numeric" }))}${cls === "next" ? " · Up next" : ""}</time><span>${esc(label)}</span></li>`;
     }).join("");
     $("#insta-slot").innerHTML = instaHtml();
+
+    // Home page reels teaser: the three most watched, as tappable cards.
+    const reels = REELS.map((r) => (Array.isArray(r) ? { code: r[0], views: r[1] || 0 } : { code: r, views: 0 }));
+    if (reels.length) {
+      const top = reels.slice().sort((x, y) => y.views - x.views).slice(0, 3);
+      const totalViews = reels.reduce((n, r) => n + r.views, 0);
+      $("#reels-teaser").innerHTML = `
+        <div class="sec-head">
+          <div><h2>Vice City <span class="grad-text">Reels</span></h2><p>${reels.length} reels · ${fmtViews(totalViews)} views on Instagram. Watch them all in one place.</p></div>
+          <a class="btn btn-primary" href="reels.html">All ${reels.length} reels →</a>
+        </div>
+        <div class="reels-grid">${top.map((r) => reelHtml(r, false)).join("")}</div>`;
+    }
 
     const chips = $("#chips");
     chips.innerHTML = [`<button class="chip" type="button" data-cat="" aria-pressed="true">All</button>`]
@@ -322,19 +348,16 @@
   }
 
   // ---------- Reels ----------
-  const fmtViews = (n) => (n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(/\.0$/, "") + "K" : String(n));
-  function reelHtml(r, eager) {
-    return `
-      <article class="reel reveal">
-        <div class="reel-frame">
-          <iframe src="https://www.instagram.com/reel/${encodeURIComponent(r.code)}/embed/" title="Instagram reel" loading="${eager ? "eager" : "lazy"}" allow="encrypted-media; clipboard-write" allowfullscreen scrolling="no"></iframe>
-        </div>
-        <div class="reel-row">
-          ${r.views ? `<span class="reel-views">▶ ${fmtViews(r.views)} views</span>` : "<span></span>"}
-          <a class="reel-link" href="https://www.instagram.com/reel/${encodeURIComponent(r.code)}/" target="_blank" rel="noopener">${IG_ICON} Open on Instagram</a>
-        </div>
-      </article>`;
-  }
+  // Instagram's embedded player tells the parent page its real height; size each frame to match.
+  window.addEventListener("message", (e) => {
+    if (e.origin !== "https://www.instagram.com") return;
+    let d; try { d = typeof e.data === "string" ? JSON.parse(e.data) : e.data; } catch (err) { return; }
+    if (!d || d.type !== "MEASURE" || !d.details || !d.details.height) return;
+    document.querySelectorAll(".reel-frame iframe").forEach((f) => {
+      if (f.contentWindow === e.source) { f.parentElement.style.height = d.details.height + "px"; f.parentElement.classList.add("measured"); }
+    });
+  });
+
   function renderReels() {
     renderChrome();
     document.title = "Reels | Vice City Daily";
