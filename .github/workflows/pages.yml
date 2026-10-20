@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main, claude/github-pages-test-hosting-1jl2t3]
+    branches: [main, claude/vice-city-daily-website-n9w8yv]
   workflow_dispatch:
 
 permissions:
