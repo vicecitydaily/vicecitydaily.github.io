@@ -25,6 +25,7 @@
         <span class="eyebrow"><span class="dot"></span> On Instagram</span>
         <h1 class="page-title">Vice City <span class="grad-text">Reels</span></h1>
         <p class="sub-plain">Every GTA VI reel from @vicecity.daily6, all on one page. Tap a reel to play it; like, comment and follow right from here.</p>
+        <p class="reel-stats" id="reel-stats"></p>
         <div class="hero-ctas">
           <a class="btn btn-primary" href="https://www.instagram.com/vicecity.daily6/reels/" target="_blank" rel="noopener">Follow @vicecity.daily6</a>
           <a class="btn btn-ghost" href="./">Back to the countdown</a>
@@ -32,12 +33,24 @@
       </div>
     </section>
     <section class="block wrap">
+      <div class="sec-head"><div><h2>Most <span class="grad-text">Watched</span></h2><p>The reels everyone's talking about.</p></div></div>
+      <div class="reels-grid top" id="reels-top"></div>
+    </section>
+    <section class="block wrap" id="all-reels">
+      <div class="sec-head">
+        <div><h2>All <span class="grad-text">Reels</span></h2><p>Newest first, or sort by views.</p></div>
+        <div class="chips" id="reel-sort" role="group" aria-label="Sort reels">
+          <button class="chip" type="button" data-sort="new" aria-pressed="true">Newest</button>
+          <button class="chip" type="button" data-sort="views" aria-pressed="false">Most viewed</button>
+        </div>
+      </div>
       <div class="reels-grid" id="reels"></div>
+      <div class="load-more-wrap"><button class="btn btn-ghost" type="button" id="reels-more" hidden>Load more</button></div>
     </section>
     <section class="block wrap" id="insta-slot"></section>
   </main>
   <div id="chrome-bottom"></div>
-  <script src="assets/js/data.js?v=20261020-10"></script>
-  <script src="assets/js/app.js?v=20261020-10"></script>
+  <script src="assets/js/data.js?v=20261020-11"></script>
+  <script src="assets/js/app.js?v=20261020-11"></script>
 </body>
 </html>

@@ -322,23 +322,54 @@
   }
 
   // ---------- Reels ----------
-  const reelCode = (s) => { const m = String(s).match(/(?:reel|reels|p)\/([A-Za-z0-9_-]+)/); return m ? m[1] : String(s).trim(); };
+  const fmtViews = (n) => (n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1).replace(/\.0$/, "") + "K" : String(n));
+  function reelHtml(r, eager) {
+    return `
+      <article class="reel reveal">
+        <div class="reel-frame">
+          <iframe src="https://www.instagram.com/reel/${encodeURIComponent(r.code)}/embed/" title="Instagram reel" loading="${eager ? "eager" : "lazy"}" allow="encrypted-media; clipboard-write" allowfullscreen scrolling="no"></iframe>
+          ${r.views ? `<span class="reel-views">▶ ${fmtViews(r.views)} views</span>` : ""}
+        </div>
+        <a class="reel-link" href="https://www.instagram.com/reel/${encodeURIComponent(r.code)}/" target="_blank" rel="noopener">${IG_ICON} Open on Instagram</a>
+      </article>`;
+  }
   function renderReels() {
     renderChrome();
     document.title = "Reels | Vice City Daily";
     const root = $("#reels");
-    const codes = REELS.map(reelCode).filter(Boolean);
-    if (!codes.length) {
+    const all = REELS.map((r, i) => (Array.isArray(r) ? { code: r[0], views: r[1] || 0, order: i } : { code: r, views: 0, order: i }));
+    if (!all.length) {
       root.innerHTML = `<div class="empty">Reels are on their way. In the meantime, watch them on <a href="${INSTAGRAM.url}reels/" target="_blank" rel="noopener" style="color:var(--pink)">Instagram</a>.</div>`;
-    } else {
-      root.innerHTML = codes.map((c, i) => `
-        <article class="reel reveal">
-          <div class="reel-frame">
-            <iframe src="https://www.instagram.com/reel/${encodeURIComponent(c)}/embed/" title="Instagram reel ${i + 1}" loading="${i < 3 ? "eager" : "lazy"}" allow="encrypted-media; clipboard-write" allowfullscreen scrolling="no"></iframe>
-          </div>
-          <a class="reel-link" href="https://www.instagram.com/reel/${encodeURIComponent(c)}/" target="_blank" rel="noopener">${IG_ICON} Open on Instagram</a>
-        </article>`).join("");
+      $("#insta-slot").innerHTML = instaHtml();
+      return;
     }
+    const total = all.reduce((n, r) => n + r.views, 0);
+    $("#reel-stats").innerHTML = `<b>${all.length}</b> reels · <b>${fmtViews(total)}</b> views and counting`;
+
+    // Top performers first, as a hook.
+    const top = all.slice().sort((x, y) => y.views - x.views).slice(0, 3);
+    $("#reels-top").innerHTML = top.map((r) => reelHtml(r, true)).join("");
+
+    const PAGE = 9;
+    let sort = "new", shown = PAGE;
+    const sorted = () => (sort === "views" ? all.slice().sort((x, y) => y.views - x.views) : all);
+    function draw() {
+      const list = sorted().slice(0, shown);
+      root.innerHTML = list.map((r) => reelHtml(r, false)).join("");
+      const more = $("#reels-more");
+      more.hidden = shown >= all.length;
+      more.textContent = `Load more (${Math.min(PAGE, all.length - shown)} of ${all.length - shown} left)`;
+      observeReveals();
+    }
+    $("#reels-more").addEventListener("click", () => { shown += PAGE; draw(); });
+    $("#reel-sort").addEventListener("click", (e) => {
+      const btn = e.target.closest(".chip"); if (!btn) return;
+      sort = btn.dataset.sort; shown = PAGE;
+      document.querySelectorAll("#reel-sort .chip").forEach((c) => c.setAttribute("aria-pressed", String(c === btn)));
+      draw();
+      $("#all-reels").scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    draw();
     $("#insta-slot").innerHTML = instaHtml();
     observeReveals();
   }
