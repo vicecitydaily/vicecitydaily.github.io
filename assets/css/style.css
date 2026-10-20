@@ -327,3 +327,17 @@ footer a { text-decoration: underline; }
 .featured .card-play { width: 84px; }
 .a-video { margin: 0 0 28px; box-shadow: 0 30px 80px -40px rgba(255, 46, 136, .8); border-radius: var(--radius); }
 @media (max-width: 480px) { .hype .row span:first-child, .hype .row span:last-child { display: none; } .hype .row { justify-content: center; } }
+
+/* ---------- Reels ---------- */
+.reels-hero { position: relative; padding: 130px 0 40px; text-align: center; overflow: hidden; }
+.reels-hero::before { content: ""; position: absolute; inset: 0; z-index: -1; background: radial-gradient(60% 60% at 50% 0%, rgba(238, 42, 123, .35), transparent 70%), radial-gradient(40% 50% at 80% 30%, rgba(98, 40, 215, .35), transparent 70%), radial-gradient(40% 50% at 15% 30%, rgba(249, 206, 52, .18), transparent 70%); }
+.page-title { font-family: var(--display); font-weight: 400; text-transform: uppercase; font-size: clamp(2.2rem, 7vw, 4.5rem); line-height: 1; margin: 18px 0 12px; }
+.sub-plain { color: var(--muted); max-width: 560px; margin: 0 auto 26px; font-size: 1.05rem; }
+.reels-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; justify-content: center; }
+.reel { display: flex; flex-direction: column; gap: 10px; }
+.reel-frame { position: relative; border-radius: 18px; overflow: hidden; background: #000; border: 1px solid var(--line); box-shadow: 0 24px 60px -30px rgba(238, 42, 123, .7); aspect-ratio: 9 / 20; }
+/* 9:20 leaves room for Instagram's header and like/comment bar under the 9:16 video. */
+.reel-frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.reel-link { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 16px; border-radius: 999px; font-family: var(--cond); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; font-size: .9rem; color: #fff; background: linear-gradient(45deg, #f9ce34, #ee2a7b 50%, #6228d7); }
+.reel-link svg { width: 18px; height: 18px; }
+@media (max-width: 760px) { .site-nav .link { display: none; } }

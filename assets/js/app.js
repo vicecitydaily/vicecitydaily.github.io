@@ -8,6 +8,7 @@
   }
   const { CATEGORIES, ARTICLES, FACTS, TIMELINE, INSTAGRAM, LAUNCH, PRELOAD } = window.VCD;
   const VIDEOS = window.VCD.VIDEOS || [];
+  const REELS = window.VCD.REELS || [];
   const $ = (sel, root = document) => root.querySelector(sel);
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => (
     { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
@@ -81,6 +82,7 @@
           <nav class="site-nav" aria-label="Main">
             <a class="link" href="./#news">News</a>
             <a class="link" href="./#watch">Trailers</a>
+            <a class="link" href="reels.html">Reels</a>
             <a class="link" href="./#timeline">Timeline</a>
             <span class="mini-count" id="mini-count" aria-label="Time until GTA VI launch"></span>
             <a class="ig-btn" href="${INSTAGRAM.url}" target="_blank" rel="noopener">${IG_ICON}<span class="ig-label">@${esc(INSTAGRAM.handle)}</span></a>
@@ -138,7 +140,10 @@
         <h3>Follow the countdown</h3>
         <span class="handle">@${esc(INSTAGRAM.handle)}</span>
         <p>Daily GTA VI news, launch updates and Vice City vibes, straight to your feed.</p>
-        <a class="btn" href="${INSTAGRAM.url}" target="_blank" rel="noopener">${IG_ICON} Follow on Instagram</a>
+        <div class="hero-ctas" style="justify-content:flex-start;margin-top:0">
+          <a class="btn" href="${INSTAGRAM.url}" target="_blank" rel="noopener">${IG_ICON} Follow on Instagram</a>
+          <a class="btn btn-ghost" href="reels.html">Watch the reels</a>
+        </div>
       </div>`;
   }
 
@@ -316,7 +321,30 @@
     observeReveals();
   }
 
-  if (document.body.dataset.page === "article") renderArticle();
+  // ---------- Reels ----------
+  const reelCode = (s) => { const m = String(s).match(/(?:reel|reels|p)\/([A-Za-z0-9_-]+)/); return m ? m[1] : String(s).trim(); };
+  function renderReels() {
+    renderChrome();
+    document.title = "Reels | Vice City Daily";
+    const root = $("#reels");
+    const codes = REELS.map(reelCode).filter(Boolean);
+    if (!codes.length) {
+      root.innerHTML = `<div class="empty">Reels are on their way. In the meantime, watch them on <a href="${INSTAGRAM.url}reels/" target="_blank" rel="noopener" style="color:var(--pink)">Instagram</a>.</div>`;
+    } else {
+      root.innerHTML = codes.map((c, i) => `
+        <article class="reel reveal">
+          <div class="reel-frame">
+            <iframe src="https://www.instagram.com/reel/${encodeURIComponent(c)}/embed/" title="Instagram reel ${i + 1}" loading="${i < 3 ? "eager" : "lazy"}" allow="encrypted-media; clipboard-write" allowfullscreen scrolling="no"></iframe>
+          </div>
+          <a class="reel-link" href="https://www.instagram.com/reel/${encodeURIComponent(c)}/" target="_blank" rel="noopener">${IG_ICON} Open on Instagram</a>
+        </article>`).join("");
+    }
+    $("#insta-slot").innerHTML = instaHtml();
+    observeReveals();
+  }
+
+  if (document.body.dataset.page === "reels") renderReels();
+  else if (document.body.dataset.page === "article") renderArticle();
   else renderHome();
   // Never leave content hidden if the scroll animation can't run.
   setTimeout(() => document.querySelectorAll(".reveal:not(.in)").forEach((el) => {

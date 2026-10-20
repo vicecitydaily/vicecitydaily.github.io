@@ -8,6 +8,7 @@ Live at https://vicecitydaily.github.io/ · Instagram: [@vicecity.daily6](https:
 - `assets/js/scene.js` — the animated canvas skyline/sun/grid behind the countdown
 - `assets/js/data.js` — all content: stories, facts, timeline, launch dates
 - `VCD.VIDEOS` in `data.js` — official Rockstar YouTube videos for the Trailers section (add a story's `video` field to embed one in it)
+- `reels.html` — every Instagram reel on one page, via Instagram's official embed player; paste reel links into `VCD.REELS` in `data.js`
 - `assets/img/` — story photos (real-world Miami/Florida, Wikimedia Commons, credited per story)
 
 ## Adding a news story

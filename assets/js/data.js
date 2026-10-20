@@ -49,6 +49,13 @@ VCD.VIDEOS = [
   { id: "QdBZY2fkU-0", title: "Trailer 1", date: "2023-12-05" }
 ];
 
+// Instagram reels, newest first. Paste the reel link (or just its code, the
+// part after /reel/ in the URL). Each shows Instagram's official embedded
+// player, so views and likes count on the account.
+VCD.REELS = [
+  // "https://www.instagram.com/reel/XXXXXXXXXXX/",
+];
+
 const credit = (artist, license, page) => ({ artist, license, page });
 
 VCD.ARTICLES = [
