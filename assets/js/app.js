@@ -1,7 +1,13 @@
 (function () {
   "use strict";
 
+  if (!window.VCD || !window.VCD.ARTICLES) {
+    // Usually a stale cached copy of data.js; a reload fetches the fresh one.
+    document.body.insertAdjacentHTML("afterbegin", '<p style="padding:90px 16px;text-align:center">Loading the latest edition… <a href="" style="color:#ff2e88">Tap to refresh</a></p>');
+    return;
+  }
   const { CATEGORIES, ARTICLES, FACTS, TIMELINE, INSTAGRAM, LAUNCH, PRELOAD } = window.VCD;
+  const VIDEOS = window.VCD.VIDEOS || [];
   const $ = (sel, root = document) => root.querySelector(sel);
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => (
     { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
@@ -19,6 +25,41 @@
   const trailerOne = new Date(2023, 11, 5);
 
   const IG_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>`;
+
+  const ytThumb = (id) => `https://i.ytimg.com/vi/${encodeURIComponent(id)}/maxresdefault.jpg`;
+  const usesStill = (a) => a.video && !a.photoInsteadOfVideoStill;
+  const cardImg = (a) => (usesStill(a) ? ytThumb(a.video) : `assets/img/${a.image}`);
+  const PLAY = `<svg viewBox="0 0 68 48" aria-hidden="true"><path d="M66.5 7.7a8.5 8.5 0 0 0-6-6C55.3.3 34 .3 34 .3s-21.3 0-26.5 1.4a8.5 8.5 0 0 0-6 6C.1 12.9.1 24 .1 24s0 11.1 1.4 16.3a8.5 8.5 0 0 0 6 6c5.2 1.4 26.5 1.4 26.5 1.4s21.3 0 26.5-1.4a8.5 8.5 0 0 0 6-6C67.9 35.1 67.9 24 67.9 24s0-11.1-1.4-16.3z" fill="#ff2e88"/><path d="M45 24 27 14v20z" fill="#fff"/></svg>`;
+
+  // Click-to-play YouTube player: shows the thumbnail until tapped, so pages stay fast.
+  // Big players carry the title over the image; small ones put it underneath.
+  function videoHtml(id, title, size, label) {
+    const big = size === "big";
+    return `
+      <div class="vid">
+        <button class="yt ${big ? "big" : ""}" type="button" data-yt="${esc(id)}" aria-label="Play ${esc(title)}">
+          <img src="${ytThumb(id)}" alt="" loading="lazy" decoding="async">
+          <span class="yt-play">${PLAY}</span>
+          ${big ? `<span class="yt-title"><b>${esc(label || title)}</b><small>Rockstar Games · YouTube</small></span>` : ""}
+        </button>
+        ${big ? "" : `<span class="vid-cap">${esc(title)}<small>Rockstar Games · YouTube</small></span>`}
+      </div>`;
+  }
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest("button.yt");
+    if (!btn) return;
+    const frame = document.createElement("iframe");
+    frame.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(btn.dataset.yt)}?autoplay=1&rel=0&playsinline=1`;
+    frame.title = btn.getAttribute("aria-label").replace(/^Play /, "");
+    frame.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+    frame.allowFullscreen = true;
+    frame.className = btn.className.replace("yt", "yt-frame");
+    btn.replaceWith(frame);
+  });
+
+  function safely(fn) {
+    try { fn(); } catch (err) { console.error(err); }
+  }
 
   function remaining(now) {
     const ms = Math.max(0, launchAt - now);
@@ -39,6 +80,7 @@
           <a class="brand" href="./" aria-label="Vice City Daily home">VICE CITY <span>DAILY</span></a>
           <nav class="site-nav" aria-label="Main">
             <a class="link" href="./#news">News</a>
+            <a class="link" href="./#watch">Trailers</a>
             <a class="link" href="./#timeline">Timeline</a>
             <span class="mini-count" id="mini-count" aria-label="Time until GTA VI launch"></span>
             <a class="ig-btn" href="${INSTAGRAM.url}" target="_blank" rel="noopener">${IG_ICON}<span class="ig-label">@${esc(INSTAGRAM.handle)}</span></a>
@@ -78,8 +120,9 @@
     return `
       <a class="card reveal" href="${articleUrl(a)}">
         <div class="img">
-          <img src="assets/img/${esc(a.image)}" alt="" loading="lazy" decoding="async">
+          <img src="${esc(cardImg(a))}" alt="" loading="lazy" decoding="async">
           <span class="badge ${esc(a.category)}">${esc(catName(a.category))}</span>
+          ${a.video ? `<span class="card-play">${PLAY}</span>` : ""}
         </div>
         <div class="txt">
           <h3>${esc(a.title)}</h3>
@@ -152,7 +195,13 @@
 
   function renderHome() {
     renderChrome();
-    renderCountdown();
+    safely(renderCountdown);
+
+    if (VIDEOS.length) {
+      $("#watch-main").innerHTML = videoHtml(VIDEOS[0].id, VIDEOS[0].title, "big");
+      $("#watch-list").innerHTML = VIDEOS.slice(1).map((v) => videoHtml(v.id, v.title)).join("") +
+        `<a class="watch-more" href="https://www.youtube.com/@RockstarGames" target="_blank" rel="noopener">More on Rockstar's YouTube ↗</a>`;
+    }
 
     $("#facts").innerHTML = FACTS.map(([k, v]) => `<div class="fact"><b>${esc(k)}</b><span>${esc(v)}</span></div>`).join("");
 
@@ -179,7 +228,7 @@
       const rest = list.filter((a) => a !== feat);
       $("#feed").innerHTML = !feat ? `<div class="empty">No stories here yet.</div>` : `
         <a class="featured reveal" href="${articleUrl(feat)}">
-          <div class="img"><img src="assets/img/${esc(feat.image)}" alt="" fetchpriority="high"></div>
+          <div class="img"><img src="${esc(cardImg(feat))}" alt="" fetchpriority="high">${feat.video ? `<span class="card-play">${PLAY}</span>` : ""}</div>
           <div class="txt">
             <div><span class="badge ${esc(feat.category)}">${esc(catName(feat.category))}</span></div>
             <h3>${esc(feat.title)}</h3>
@@ -226,7 +275,7 @@
     const more = ARTICLES.filter((x) => x !== a).sort(byNewest).slice(0, 3);
     root.innerHTML = `
       <div class="a-hero">
-        <img src="assets/img/${esc(a.image)}" alt="" fetchpriority="high">
+        <img src="${esc(cardImg(a))}" alt="" fetchpriority="high">
         <div class="wrap">
           <a class="back" href="./#news">← All GTA VI news</a>
           <div style="margin-top:16px"><span class="badge ${esc(a.category)}">${esc(catName(a.category))}</span></div>
@@ -236,8 +285,11 @@
         </div>
       </div>
       <article class="a-body">
+        ${a.video ? `<div class="a-video">${videoHtml(a.video, a.title, "big", "Watch the video")}</div>` : ""}
         ${a.body.map((p) => `<p>${esc(p)}</p>`).join("")}
-        <p class="photo-credit">Photo: <a href="${esc(a.credit.page)}" target="_blank" rel="noopener">${esc(a.credit.artist)}</a>, ${esc(a.credit.license)}, via Wikimedia Commons. Real-world Miami/Florida photo, not from the game.</p>
+        <p class="photo-credit">${a.video ? `Video: <a href="https://www.youtube.com/watch?v=${esc(a.video)}" target="_blank" rel="noopener">Rockstar Games on YouTube</a>. ` : ""}${usesStill(a)
+          ? ""
+          : `Photo: <a href="${esc(a.credit.page)}" target="_blank" rel="noopener">${esc(a.credit.artist)}</a>, ${esc(a.credit.license)}, via Wikimedia Commons. Real-world Miami/Florida photo, not from the game.`}</p>
         <div class="sources">
           <h2>Sources</h2>
           <ul>${a.sources.map(([name, url]) => `<li><a href="${esc(url)}" target="_blank" rel="noopener">${esc(name)}</a></li>`).join("")}</ul>
@@ -266,4 +318,8 @@
 
   if (document.body.dataset.page === "article") renderArticle();
   else renderHome();
+  // Never leave content hidden if the scroll animation can't run.
+  setTimeout(() => document.querySelectorAll(".reveal:not(.in)").forEach((el) => {
+    if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add("in");
+  }), 1200);
 })();

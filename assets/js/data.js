@@ -32,11 +32,21 @@ VCD.TIMELINE = [
   ["2023-12-05", "Trailer 1 revealed: Lucia, Leonida and a return to Vice City"],
   ["2025-05-06", "Trailer 2 introduces Jason Duval"],
   ["2025-11-06", "Rockstar moves launch to November 19, 2026"],
+  ["2026-06-18", "Official cover art revealed"],
   ["2026-06-24", "Prices revealed: $79.99 Standard, $99.99 Ultimate"],
+  ["2026-08-27", "An Extended Look premieres on Netflix"],
   ["2026-10-15", "Official launch trailer released"],
   ["2026-11-12", "Digital preloads open"],
   ["2026-11-19", "GTA VI launches on PS5 and Xbox Series X|S"],
   ["2026-12-10", "The Game Awards 2026"]
+];
+
+// Official Rockstar Games videos on YouTube, embedded with YouTube's player.
+VCD.VIDEOS = [
+  { id: "rz1B4B2yBZY", title: "Launch Trailer", date: "2026-10-15" },
+  { id: "tJbzMqJGH4k", title: "An Extended Look", date: "2026-08-27" },
+  { id: "VQRLujxTm3c", title: "Trailer 2", date: "2025-05-06" },
+  { id: "QdBZY2fkU-0", title: "Trailer 1", date: "2023-12-05" }
 ];
 
 const credit = (artist, license, page) => ({ artist, license, page });
@@ -67,6 +77,7 @@ VCD.ARTICLES = [
     title: "Rockstar Drops the Official GTA VI Launch Trailer",
     dek: "Ninety seconds of in-game footage captured on PS5: an easy score goes wrong, and Jason and Lucia are pulled into a conspiracy across Leonida.",
     image: "launch-trailer.jpg",
+    video: "rz1B4B2yBZY",
     credit: credit("Radomianin", "Public domain", "https://commons.wikimedia.org/wiki/File:The_Carlyle_(neon_sign),_Miami_Beach,_east_view_up,_2018-08-21.jpg"),
     body: [
       "Rockstar Games released the official launch trailer for Grand Theft Auto VI on October 15, five weeks before the game arrives on PlayStation 5 and Xbox Series X|S.",
@@ -253,6 +264,46 @@ VCD.ARTICLES = [
     sources: [
       ["Local 10 News", "https://www.local10.com/news/local/2026/09/18/miami-dade-commissioners-raise-concerns-about-countys-welcome-to-vice-city-deal-with-grand-theft-auto-vi-game/"],
       ["WLRN", "https://www.wlrn.org/light/government-politics/2026-09-18/miami-dade-welcome-to-vice-city-gta-kaseya"]
+    ]
+  },
+  {
+    id: "extended-look-netflix",
+    category: "official",
+    date: "2026-08-27",
+    title: "Rockstar Premieres a 27-Minute \"Extended Look\" at GTA VI on Netflix",
+    dek: "The in-game presentation streamed on Netflix first, then hit Rockstar's YouTube channel six hours later.",
+    image: "next-game.jpg",
+    video: "tJbzMqJGH4k",
+    credit: credit("Rockstar Games", "official video via YouTube", "https://www.youtube.com/watch?v=tJbzMqJGH4k"),
+    body: [
+      "Rockstar announced on August 6 that Grand Theft Auto VI: An Extended Look would premiere on Netflix on Thursday, August 27, at 3 p.m. ET. The same presentation went up on Rockstar's YouTube channel and the GTA VI website at 9 p.m. ET that evening, giving Netflix a six-hour head start.",
+      "Rockstar says the presentation was captured entirely from in-game footage on PS5. It follows Jason Duval and Lucia Caminos through Leonida, the game's fictional take on Florida.",
+      "It was the longest look at the game Rockstar had shown, and a break from the studio's usual approach of releasing trailers only on its own channels."
+    ],
+    sources: [
+      ["Game Informer", "https://gameinformer.com/2026/08/06/grand-theft-auto-vi-is-getting-an-extended-look-on-netflix-august-27"],
+      ["GameSpot", "https://www.gamespot.com/articles/gta-6-extended-look-coming-august-27-on-netflix/"],
+      ["Rockstar Games", "https://www.rockstargames.com/VI/an-extended-look"]
+    ]
+  },
+  {
+    id: "cover-art-reveal",
+    category: "official",
+    date: "2026-06-18",
+    title: "GTA VI's Official Cover Art Revealed, With Pre-Orders Set for June 25",
+    dek: "A classic grid-style cover built around Lucia Caminos and Jason Duval ended more than a year of silence after Trailer 2.",
+    image: "esrb.jpg",
+    video: "INjHGpMRjRA",
+    photoInsteadOfVideoStill: true,
+    credit: credit("Radomianin", "Public domain", "https://commons.wikimedia.org/wiki/File:Boulevard_Hotel_(Neon_sign),_Miami_Beach.jpg"),
+    body: [
+      "Rockstar revealed the official cover art for Grand Theft Auto VI on June 18, 2026, alongside a short teaser video. It was the first new look at the game in more than 400 days, since Trailer 2 in May 2025.",
+      "The artwork uses the grid layout that has defined GTA covers for decades, centered on protagonists Lucia Caminos and Jason Duval.",
+      "Rockstar also confirmed that pre-orders would open June 25 on digital storefronts and at select retailers."
+    ],
+    sources: [
+      ["GTABase", "https://www.gtabase.com/articles/gta-6/gta-6-official-cover-art-revealed-pre-orders-begin-june-25"],
+      ["Gfinity Esports", "https://www.gfinityesports.com/article/official-gta-6-cover-art-unveiled-by-rockstar"]
     ]
   },
   {
