@@ -5,6 +5,7 @@ Live at https://vicecitydaily.github.io/ · Instagram: [@vicecity.daily6](https:
 
 - `index.html` — countdown hero (to midnight local time, Nov 19, 2026), key facts, news feed with category filters, launch timeline, Instagram promo
 - `article.html?id=<story-id>` — story pages with photo credit and source links
+- `assets/js/scene.js` — the animated canvas skyline/sun/grid behind the countdown
 - `assets/js/data.js` — all content: stories, facts, timeline, launch dates
 - `VCD.VIDEOS` in `data.js` — official Rockstar YouTube videos for the Trailers section (add a story's `video` field to embed one in it)
 - `assets/img/` — story photos (real-world Miami/Florida, Wikimedia Commons, credited per story)
