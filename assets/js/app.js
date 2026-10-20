@@ -353,7 +353,7 @@
     $("#reels-top").innerHTML = top.map((r) => reelHtml(r, true)).join("");
 
     const PAGE = 9;
-    let sort = "new", shown = PAGE;
+    let sort = "views", shown = PAGE;
     const sorted = () => (sort === "views" ? all.slice().sort((x, y) => y.views - x.views) : all);
     function draw() {
       const list = sorted().slice(0, shown);
