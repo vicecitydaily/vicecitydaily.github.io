@@ -77,7 +77,7 @@
     $("#chrome-top").innerHTML = `
       <header class="site-header" id="site-header">
         <div class="wrap">
-          <a class="brand" href="./" aria-label="Vice City Daily home">VICE CITY <span>DAILY</span></a>
+          <a class="brand" href="./" aria-label="Vice City Daily home"><span class="vi">VI</span>CE CITY <span>DAILY</span></a>
           <nav class="site-nav" aria-label="Main">
             <a class="link" href="./#news">News</a>
             <a class="link" href="./#watch">Trailers</a>
@@ -92,7 +92,7 @@
       <footer>
         <div class="wrap">
           <div>
-            <a class="brand" href="./">VICE CITY <span>DAILY</span></a>
+            <a class="brand" href="./"><span class="vi">VI</span>CE CITY <span>DAILY</span></a>
             <p style="margin-top:10px">Real GTA VI news, every day. Follow <a href="${INSTAGRAM.url}" target="_blank" rel="noopener">@${esc(INSTAGRAM.handle)}</a> on Instagram.</p>
           </div>
           <div>

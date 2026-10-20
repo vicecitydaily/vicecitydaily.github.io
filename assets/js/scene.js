@@ -50,10 +50,10 @@
 
   function drawSky() {
     const g = ctx.createLinearGradient(0, 0, 0, horizon);
-    g.addColorStop(0, "#07021a");
-    g.addColorStop(0.45, "#2a0a4f");
-    g.addColorStop(0.78, "#7a1b6e");
-    g.addColorStop(1, "#ff5c6a");
+    g.addColorStop(0, "#0a0322");
+    g.addColorStop(0.42, "#2d0b5e");
+    g.addColorStop(0.75, "#8a2a8f");
+    g.addColorStop(1, "#ff5a7a");
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, horizon + 2);
   }
@@ -80,10 +80,10 @@
     ctx.save();
     ctx.beginPath(); ctx.rect(0, 0, W, horizon); ctx.clip();
     const g = ctx.createLinearGradient(0, cy - R, 0, cy + R);
-    g.addColorStop(0, "#fff1a8");
-    g.addColorStop(0.45, "#ffb347");
-    g.addColorStop(0.75, "#ff4f8b");
-    g.addColorStop(1, "#c81e8f");
+    g.addColorStop(0, "#ffe27a");
+    g.addColorStop(0.4, "#ffa54a");
+    g.addColorStop(0.72, "#ff2d95");
+    g.addColorStop(1, "#8a3fff");
     ctx.fillStyle = g;
     ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.fill();
 
@@ -146,7 +146,7 @@
     }
 
     // Perspective grid flowing toward the viewer
-    ctx.strokeStyle = "rgba(255,46,136,0.55)";
+    ctx.strokeStyle = "rgba(255,45,149,0.55)";
     ctx.lineWidth = 1;
     const vanish = { x: cx, y: horizon };
     const cols = 22;
@@ -163,7 +163,7 @@
       ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
     }
     ctx.globalAlpha = 1;
-    ctx.strokeStyle = "rgba(45,226,230,0.35)";
+    ctx.strokeStyle = "rgba(77,227,232,0.35)";
     ctx.beginPath(); ctx.moveTo(cx, horizon); ctx.lineTo(cx, H); ctx.stroke();
   }
 
