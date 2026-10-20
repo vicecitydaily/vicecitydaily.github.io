@@ -328,9 +328,11 @@
       <article class="reel reveal">
         <div class="reel-frame">
           <iframe src="https://www.instagram.com/reel/${encodeURIComponent(r.code)}/embed/" title="Instagram reel" loading="${eager ? "eager" : "lazy"}" allow="encrypted-media; clipboard-write" allowfullscreen scrolling="no"></iframe>
-          ${r.views ? `<span class="reel-views">▶ ${fmtViews(r.views)} views</span>` : ""}
         </div>
-        <a class="reel-link" href="https://www.instagram.com/reel/${encodeURIComponent(r.code)}/" target="_blank" rel="noopener">${IG_ICON} Open on Instagram</a>
+        <div class="reel-row">
+          ${r.views ? `<span class="reel-views">▶ ${fmtViews(r.views)} views</span>` : "<span></span>"}
+          <a class="reel-link" href="https://www.instagram.com/reel/${encodeURIComponent(r.code)}/" target="_blank" rel="noopener">${IG_ICON} Open on Instagram</a>
+        </div>
       </article>`;
   }
   function renderReels() {
